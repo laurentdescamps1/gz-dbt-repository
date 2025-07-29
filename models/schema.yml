@@ -1,14 +1,52 @@
- # schema.yml
+# schema.yml
 
- version: 2
+version: 2
 
- sources:
+sources:
    - name: raw
      schema : gz_raw_data
      tables:
        - name: product
          identifier : raw_gz_product 
+         description: products of Greenweez / we have on row per product_id with associated purchase price
+         columns:
+           - name: products_id
+             description: product id
+             tests:
+             - unique
+             - not_null
+           - name : purchase_price
+             description : purchase price
        - name: sales
          identifier : raw_gz_sales
+         description: sales of Greenweez / we have on row per product_id found in each orders_id
+         columns:
+           - name: date_date
+             description: date of purcha
+           - name : orders_id
+             description : order id
+           - name : pdt_id
+             description : product id
+           - name : revenue
+             description : turnover
+           - name : quantity
+             description : quantity 
+         tests:
+          - unique:
+              column_name: "(orders_id || '-' || pdt_id)" 
+
        - name: ship
          identifier : raw_gz_ship
+         description: information related to shipping of Greenweez products
+         columns:
+           - name: orders_id
+             description: order id
+             tests:
+              - unique
+              - not_null
+           - name : shipping_fee
+             description : shipping fee
+           - name : log_cost
+             description : log cost
+           - name : ship_cost
+             description : ship cost
