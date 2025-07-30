@@ -1,18 +1,29 @@
-SELECT
-    a.date_date as date_date
-    , count(a.orders_id) AS count_orders
-    , sum(b.revenue) as revenue
-    , sum(b.revenue)/count(a.orders_id) AS avg_basket
-    , sum(a.operational_margin) as operational_margin
-    , sum(b.purchase_cost) as purchase_cost
-    , sum(c.shipping_fee) as tot_shipping_fee
-    , sum(c.logcost) as tot_log_cost
-    
+WITH orders_per_day AS (
+   SELECT
+     date_date
+     ,COUNT(DISTINCT orders_id) AS nb_transactions
+     ,ROUND(SUM(revenue),0) AS revenue
+     ,ROUND(SUM(margin),0) AS margin
+     ,ROUND(SUM(operational_margin),0) AS operational_margin
+     ,ROUND(SUM(purchase_cost),0) AS purchase_cost
+     ,ROUND(SUM(shipping_fee),0) AS shipping_fee
+     ,ROUND(SUM(log_cost),0) AS log_cost
+     ,ROUND(SUM(ship_cost),0) AS ship_cost
+     ,SUM(quantity) AS quantity
+ FROM {{ref("int_orders_operational")}}
+ GROUP BY  date_date
+ )
 
-FROM {{ ref('int_orders_operational') }} AS a
-INNER JOIN {{ ref('int_orders_margin') }} AS b
-using(orders_id)
-inner join {{ ref('stg_raw__ship') }} as c
-using(orders_id)
-
-group by 1
+ SELECT
+     date_date
+     , revenue
+     , margin
+     , operational_margin
+     , purchase_cost
+     , shipping_fee
+     , log_cost
+     , ship_cost
+     , quantity
+     , ROUND(revenue/NULLIF(nb_transactions, 0), 2) AS average_basket
+ FROM orders_per_day
+ ORDER BY  date_date DESC
